@@ -1,4 +1,3 @@
-from decimal import Decimal as D, getcontext
 from time import time
 from formulas import exact_ovf_rate, upper_bound
 
@@ -15,18 +14,14 @@ cbfConstructions = [
 
 for cbf in cbfConstructions:
     start = time()
-    getcontext().prec = 25000
 
     n, m, k, h = cbf
-    exact = exact_ovf_rate(n, m, k, h, verbose=False)
+    exact = exact_ovf_rate(n, m, k, h)
     upper = upper_bound(n, m, k, h)
-    
 
     print(f"-----------------")
     print(f"n={n}, m={m}, k={k}, h={h}")
     print(f"Exact: {exact:.5E}")
     print(f"Upper bound: {upper:.5E}")
-    print(f"Deviation: {round(D('100')*D(upper) / exact - 100, 2)}%")
+    print(f"Deviation: {round(100*upper/exact - 100, 2)}%")
     print(f"Finished in {time()-start}s")
-
-

@@ -1,43 +1,41 @@
-from decimal import Decimal
-from scipy.special import comb
-from math import perm
+from collections import defaultdict
+from fractions import Fraction
+from math import perm, comb
 
-def exact_ovf_rate(n, m, k, h, verbose=False):    
-    j = 2**h-1
-    stirling = {}
-    stirling[(1, 1)] = 1
-    stirling[(1+j, 1)] = -comb(j, j, exact=True)
-    results = []    
-    for row in range(1, n*k+1):
+
+def exact_ovf_rate(n, m, k, h):
+    j, nk = 2**h-1, n*k
+    stirling = defaultdict(int)
+    stirling[1,   1] = 1  # propagate stirling[0,0]
+    stirling[1+j, 1] = -1
+
+    for row in range(1, nk-j):
+        comb_ = comb(row+j, j)
         for col in range(1, row+1):
-            val = stirling[(row, col)]
-            if row == n*k:
-                results.append(((row, col), val)) 
-            else:
-                stirling[(row+1, col)] = stirling.get((row+1, col), 0) + col * val 
-                stirling[(row+1, col+1)] = stirling.get((row+1, col+1), 0) + val
-                stirling[(row+1+j, col+1)] = stirling.get((row+1+j, col+1), 0) - val * comb(row+j, j, exact=True)
-            del stirling[(row, col)]
-        if verbose and row % 100 == 0:
-            print(f"Processed row {row}")
+            val = stirling[row, col]
+            stirling[row+1,   col] += val * col
+            stirling[row+1,   col+1] += val
+            stirling[row+1+j, col+1] -= val * comb_
+            del stirling[row, col]  # saving memory
 
-    total = 0
-    for item in results:
-        coords, val = item
-        total += val * perm(m, coords[1])
+    for row in range(nk-j, nk):
+        for col in range(1, row+1):
+            val = stirling[row, col]
+            stirling[row+1,   col] += val * col
+            stirling[row+1,   col+1] += val
 
-    totalChoices = m**(n*k)
+    total = sum(stirling[nk, col] * perm(m, col)
+                for col in range(1, nk+1))
 
-    probability = Decimal('1') - (Decimal(total) / Decimal(totalChoices)) 
-    return probability
+    return float(1 - Fraction(total, m**nk))
+
 
 def upper_bound(n, m, k, h):
-    j = 2**h 
+    def p(val):
+        return comb(n*k, val) * (1 - 1/m)**(n*k-val) * (1 / m)**val
+
+    j = 2**h
     a = (n * k) / (m-1)
-
-    def p(val):    
-        return comb(n*k, val, exact=True) * (1 - 1/m)**(n*k-val) * (1 / m)**val
-
     val = a*(j+1) / (j * (j+1 - a))
     val *= p(j-1)
     val *= m
