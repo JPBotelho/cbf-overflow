@@ -24,4 +24,4 @@ for cbf in cbfConstructions:
     print(f"Exact: {exact:.5E}")
     print(f"Upper bound: {upper:.5E}")
     print(f"Deviation: {round(100*upper/exact - 100, 2)}%")
-    print(f"Finished in {time()-start}s")
+    print(f"Finished in {time()-start:.3f}s")

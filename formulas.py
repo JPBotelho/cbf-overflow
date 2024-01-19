@@ -1,11 +1,12 @@
 from collections import defaultdict
 from fractions import Fraction
 from math import perm, comb
+from gmpy2 import mpz
 
 
 def exact_ovf_rate(n, m, k, h):
     j, nk = 2**h-1, n*k
-    stirling = defaultdict(int)
+    stirling = defaultdict(mpz)
     stirling[1,   1] = 1  # propagate stirling[0,0]
     stirling[1+j, 1] = -1
 
