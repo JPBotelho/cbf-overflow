@@ -1,6 +1,6 @@
 from collections import defaultdict
 from fractions import Fraction
-from math import perm
+from math import perm, e, log
 from gmpy2 import mpz, bincoef
 
 
@@ -41,3 +41,11 @@ def upper_bound(n, m, k, h):
     val *= p(j-1)
     val *= m
     return val
+
+# Summary Cache: A Scalable Wide-Area
+# Web Cache Sharing Protocol 
+
+def worse_upper_bound(n, m, k, h):
+    i = 2**h
+
+    return m * ((e*log(2)/i)**i)
