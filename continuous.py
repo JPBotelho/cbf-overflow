@@ -69,7 +69,7 @@ def exact_ovf_rate(h):
 
             if exact != 0:
                 print(f"Tight Upperbound: {approx_good:.5E}, var {(approx_good - prevGood):.5E}, diff to exact: {(100*approx_good/exact - 100):.2}%")
-                print(f"Naive Upperbound: {approx_bad:.5E}, var {(approx_bad - prevBad):.5E}, diff to tight: {round(100*approx_bad/approx_good - 100, 2)}%")
+                print(f"Naive Upperbound: {approx_bad:.5E}, var {(approx_bad - prevBad):.5E}, diff to exact: {round(100*approx_bad/exact - 100, 2)}%")
             else:
                 print(f"Good Upperbound: {approx_good:.5E}, +_%")
                 print(f"Bad Upperbound: {approx_bad:.5E}, +_%")
