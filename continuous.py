@@ -5,6 +5,9 @@ from gmpy2 import mpz, bincoef
 from time import time
 from formulas import upper_bound, worse_upper_bound
 
+# Notes:
+# Naive upperbound is not always getting closer to the exact
+
 # Given a line of the binomical coefficient table
 # compute the next lines until target_line
 def cached_perm(line, target_line):   
@@ -31,6 +34,9 @@ def exact_ovf_rate(h):
     perm_row = [mpz(1)]
     start = time()
     row = 0
+    prevExact = 0
+    prevGood = 0
+    prevBad = 0
     while(True):
         row += 1
         comb_ = bincoef(row+j, j)
@@ -59,14 +65,18 @@ def exact_ovf_rate(h):
 
             print(f"-----------------")
             print(f"n={n}, m={m}, k={10}, h={h}")
-            print(f"Exact: {exact:.5E}")
+            print(f"Exact: {exact:.5E}, var {(exact - prevExact):.5E}")
 
             if exact != 0:
-                print(f"Good Upperbound: {approx_good:.5E}, +{round(100*approx_good/exact - 100, 2)}%")
-                print(f"Bad Upperbound: {approx_bad:.5E}, +{round(100*approx_bad/exact - 100, 2)}%")
+                print(f"Tight Upperbound: {approx_good:.5E}, var {(approx_good - prevGood):.5E}, diff to exact: {(100*approx_good/exact - 100):.2}%")
+                print(f"Naive Upperbound: {approx_bad:.5E}, var {(approx_bad - prevBad):.5E}, diff to tight: {round(100*approx_bad/approx_good - 100, 2)}%")
             else:
                 print(f"Good Upperbound: {approx_good:.5E}, +_%")
                 print(f"Bad Upperbound: {approx_bad:.5E}, +_%")
+
+            prevExact = exact
+            prevGood = approx_good
+            prevBad = approx_bad
     print(f"took {time()-start}s")
 exact = exact_ovf_rate(4)
             
