@@ -2,51 +2,41 @@ from collections import defaultdict
 from fractions import Fraction
 from math import log
 from gmpy2 import mpz, bincoef
-from time import time
-from formulas import upper_bound, worse_upper_bound
+from formulas import upper_bound, worse_upper_bound, cached_perm
 
-# Notes:
-# Naive upperbound is not always getting closer to the exact
-
-# Given a line of the binomical coefficient table
-# compute the next lines until target_line
-def cached_perm(line, target_line):   
-    currentLine = line
-    currentLineNumber = len(line) - 1
-
-    while(currentLineNumber < target_line):
-        newLine = [mpz(0) for i in range(len(currentLine)+1)]
-        for col, val in enumerate(currentLine):
-            newLine[col] += val 
-            newLine[col+1] += val * (col+1)
-        currentLineNumber += 1
-        currentLine = newLine
-    
-    return newLine
-
-
-def exact_ovf_rate(h):
+def exact_ovf_rate_generator(h):
     j = 2**h-1
-    stirling = defaultdict(mpz)
 
+    stirling = defaultdict(mpz)
     stirling[1,   1] = 1
     stirling[1+j, 1] = -1
+
+    # cached line of pascal's triangle
+    # starts at line 1, gets expanded as needed
     perm_row = [mpz(1)]
-    start = time()
-    row = 0
+
+    # Keep track of the previous values 
     prevExact = 0
     prevGood = 0
     prevBad = 0
+
+    row = 0
     while(True):
         row += 1
+
         comb_ = bincoef(row+j, j)
 
+        # for 1 in 1024 FP rate, k = 10 (https://hur.st/bloomfilter/)
+        # we are interested in the (nk)th row of the stirling numbers
+        # when row % 10, n = row / 10
         if(row % 10 == 0):
             lineTotal = 0
             nk = row
             k = 10
             n = int(row / k)
             m = int(round(row / log(2)))
+
+            # generate pascal triangle line from cached line
             perm_row = cached_perm(perm_row, m)
 
         for col in range(1, row+1):
@@ -54,10 +44,15 @@ def exact_ovf_rate(h):
             stirling[row+1,   col] += val * col
             stirling[row+1,   col+1] += val
             stirling[row+1+j, col+1] -= val * comb_
+
+            # same logic as above, when row % 10,
+            # calculate row sum
             if(row % 10) == 0:
                 lineTotal += (val * perm_row[col])
+
             del stirling[row, col]  # saving memory
 
+        # print results
         if(row % 10) == 0:
             exact =  float(1 - Fraction(lineTotal, int(m**nk)))
             approx_good = upper_bound(n, m, k, h)
@@ -67,6 +62,8 @@ def exact_ovf_rate(h):
             print(f"n={n}, m={m}, k={10}, h={h}")
             print(f"Exact: {exact:.5E}, var {(exact - prevExact):.5E}")
 
+            # in case exact = 0, the diff to exact calculations divide by 0 and break
+            # the second case removes them
             if exact != 0:
                 print(f"Tight Upperbound: {approx_good:.5E}, var {(approx_good - prevGood):.5E}, diff to exact: {(100*approx_good/exact - 100):.2}%")
                 print(f"Naive Upperbound: {approx_bad:.5E}, var {(approx_bad - prevBad):.5E}, diff to exact: {round(100*approx_bad/exact - 100, 2)}%")
@@ -77,6 +74,7 @@ def exact_ovf_rate(h):
             prevExact = exact
             prevGood = approx_good
             prevBad = approx_bad
-    print(f"took {time()-start}s")
-exact = exact_ovf_rate(4)
+
+# arg: 4 is number of bits per counter
+exact = exact_ovf_rate_generator(4)
             

@@ -44,8 +44,25 @@ def upper_bound(n, m, k, h):
 
 # Summary Cache: A Scalable Wide-Area
 # Web Cache Sharing Protocol 
-
+# https://pages.cs.wisc.edu/~jussara/papers/00ton.pdf 
+# page 287
 def worse_upper_bound(n, m, k, h):
     i = 2**h
 
     return m * ((e*log(2)/i)**i)
+
+# Given a line of the binomical coefficient table
+# compute the next lines until target_line
+def cached_perm(line, target_line):   
+    currentLine = line
+    currentLineNumber = len(line) - 1
+
+    while(currentLineNumber < target_line):
+        newLine = [mpz(0) for i in range(len(currentLine)+1)]
+        for col, val in enumerate(currentLine):
+            newLine[col] += val 
+            newLine[col+1] += val * (col+1)
+        currentLineNumber += 1
+        currentLine = newLine
+    
+    return newLine
