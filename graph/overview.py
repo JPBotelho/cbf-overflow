@@ -17,13 +17,14 @@ data = df[columns_to_extract]
 # Plot the data
 plt.figure(figsize=(10, 6))
 
-labels = ["Exact Value", "Upper bound 2", "Upper Bound 1"]
+labels = ["Exact Value", "Upper Bound (2)", "Upper Bound (1)"]
 markers = ["D", "8", "D"]
-lineStyles = ["solid", "dashed", "dotted"]
+lineStyles = ["solid", "solid", "solid"]
+lineWidth = [2, 7, 2]
 i = 0
 for column in data.columns:
     plt.plot(data.index, data[column], label=labels[i],
-             ls=lineStyles[i])  # , marker=markers[i])
+             ls=lineStyles[i], linewidth=lineWidth[i], zorder=3-i)  # , marker=markers[i])
     i += 1
 
 plt.grid(False)
@@ -31,6 +32,5 @@ plt.grid(False)
 plt.xlabel('n')
 plt.ylabel('Overflow rate')
 plt.yscale('log')
-plt.title('Overflow Rate of Counting Bloom Filters')
 plt.legend()
 plt.show()
